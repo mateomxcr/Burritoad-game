@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Burritoad</title>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@800&family=Nunito:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; }
+
+    /* Color Scheme */
+    :root {
+      --bg: #3c096c;       /* solid purple background */
+      --accent: #ff6f00;   /* bright solid orange */
+      --highlight: #FFF8E7; /* 10% letter slots */
+    }
+
+    body {
+      margin: 0;
+      height: 100vh;
+      background: var(--bg);
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Nunito', sans-serif;
+      overflow: hidden;
+    }
+
+    h1, h2, h3 {
+      font-family: 'Baloo 2', cursive;
+      color: var(--accent);
+      margin: 0;
+    }
+
+    button {
+      border: none;
+      border-radius: 999px;
+      padding: 14px 34px;
+      font-size: 1.1rem;
+      cursor: pointer;
+      background: var(--accent);
+      color: #fff;
+      font-family: 'Baloo 2', cursive;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+
+    .screen {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: opacity 0.35s ease, transform 0.35s ease;
+    }
+
+    .hidden {
+      opacity: 0;
+      pointer-events: none;
+      transform: scale(0.97);
+    }
+
+    .home {
+      flex-direction: column;
+      gap: 28px;
+      text-align: center;
+    }
+
+    .home h1 {
+      font-size: 5rem;
+    }
+
+    .topbar {
+      position: absolute;
+      top: 18px;
+      left: 22px;
+      right: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .topbar .title {
+      font-family: 'Baloo 2', cursive;
+      font-size: 1.6rem;
+      color: var(--accent);
+    }
+
+    .topbar .actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .icon-btn {
+      background: #9a72c4;
+      color: var(--highlight);
+      font-size: 0.9rem;
+      padding: 10px 18px;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .game {
+      flex-direction: column;
+      gap: 26px;
+      text-align: center;
+      padding-top: 90px;
+    }
+
+    .prompts {
+      font-size: 1.4rem;
+      max-width: 720px;
+      line-height: 1.6;
+      color: #f3e8ff;
+    }
+
+    .inputs {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .inputs input {
+      width: 48px;
+      height: 60px;
+      font-size: 1.5rem;
+      text-align: center;
+      border-radius: 12px;
+      border: 2px solid #a185ff;
+      background: var(--highlight);
+      color: #4d2b8a;
+      font-family: 'Nunito', sans-serif;
+    }
+
+    .status {
+      font-size: 1.05rem;
+      color: #ff6f00;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.35);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+    }
+
+    .overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .popup {
+      background: #e6d9ff;
+      padding: 40px 44px;
+      border-radius: 30px;
+      max-width: 540px;
+      text-align: center;
+      position: relative;
+      animation: pop 0.4s ease;
+    }
+
+    @keyframes pop {
+      from { transform: scale(0.88); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+
+    .popup p {
+      font-family: 'Nunito', sans-serif;
+      font-size: 1.05rem;
+      line-height: 1.55;
+      color: #4d2b8a;
+    }
+
+    .popup .close {
+      position: absolute;
+      top: 14px;
+      right: 18px;
+      font-size: 1.7rem;
+      cursor: pointer;
+      color: var(--accent);
+    }
+
+    .example {
+      margin-top: 18px;
+      background: #d9c2ff;
+      padding: 16px;
+      border-radius: 18px;
+      color: #4d2b8a;
+      animation: pulse 1.8s infinite;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.03); }
+      100% { transform: scale(1); }
+    }
+
+    .win {
+      flex-direction: column;
+      gap: 20px;
+      text-align: center;
+    }
+
+    .win h1 { font-size: 4.2rem; }
+  </style>
+</head>
+<body>
+
+<div id="home" class="screen home">
+  <h1>Burritoad</h1>
+  <button id="playBtn">Play</button>
+</div>
+
+<div id="game" class="screen game hidden">
+  <div class="topbar">
+    <div class="title">Burritoad</div>
+    <div class="actions">
+      <button class="icon-btn" id="hintBtn">Hint</button>
+      <button class="icon-btn" id="howBtn">How to Play</button>
+    </div>
+  </div>
+
+  <div id="prompts" class="prompts"></div>
+  <div id="inputs" class="inputs"></div>
+  <button id="submitBtn">Submit</button>
+  <div id="status" class="status"></div>
+</div>
+
+<div id="rulesOverlay" class="overlay">
+  <div class="popup">
+    <div class="close" id="closeRules">×</div>
+    <h2>How to Play</h2>
+    <p>Each level gives you two clues. Blend both words together to form a new word.</p>
+    <p>2 lives per level, 3 levels per day. Use Hint to reveal 2 letters.</p>
+    <div class="example">
+      <b>Example</b><br>
+      Mixed filling wrapped in a tortilla<br>
+      + Terrestrial amphibian similar to a frog<br><br>
+      <b>BURRITOAD</b>
+    </div>
+  </div>
+</div>
+
+<div id="win" class="screen win hidden">
+  <h1>You Win!</h1>
+  <p id="finalTime"></p>
+  <button id="backHome">Back to Home</button>
+</div>
+
+<script>
+const home = document.getElementById('home');
+const game = document.getElementById('game');
+const win = document.getElementById('win');
+const rulesOverlay = document.getElementById('rulesOverlay');
+
+const playBtn = document.getElementById('playBtn');
+const closeRules = document.getElementById('closeRules');
+const howBtn = document.getElementById('howBtn');
+const hintBtn = document.getElementById('hintBtn');
+const submitBtn = document.getElementById('submitBtn');
+const backHome = document.getElementById('backHome');
+
+const prompts = document.getElementById('prompts');
+const inputsDiv = document.getElementById('inputs');
+const status = document.getElementById('status');
+const finalTime = document.getElementById('finalTime');
+
+const allLevels = [
+  { clues: ['Tropical yellow fleshed fruit', 'Animal killed at the Cincinnati Zoo in 2016'], answer: 'MANGORILLA' },
+  { clues: ['Eucalyptus-eating animal', 'Famous cute collectibles from 2025'], answer: 'KOALABUBU' },
+  { clues: ['What might knock your hat off', 'Glass pane to look at a view from'], answer: 'BURRITOAD' },
+  { clues: ['Thing you turn to enter a room', 'Person that doesnt matter, or no person at all'], answer: 'DOORKNOBODY' },
+  { clues: ['Cold War barrier torn down in 1989 in the german capital', 'The Perks of Being a _____'], answer: 'BERLIN WALLFLOWER' },
+  { clues: ['Trick or Treat festivity', 'Season when days become shorter'], answer: 'HALLOWINTER' }
+];
+
+function getDailyLevels(){
+  const dayIndex = Math.floor((new Date() - new Date(new Date().getFullYear(),0,0)) / 86400000);
+  const start = dayIndex % allLevels.length;
+  return [
+    allLevels[start % allLevels.length],
+    allLevels[(start+1) % allLevels.length],
+    allLevels[(start+2) % allLevels.length]
+  ];
+}
+
+let levels = getDailyLevels();
+let level = 0, lives = 2, startTime, revealed = [], hintsRemaining = 2;
+
+function show(screen){ home.classList.add('hidden'); game.classList.add('hidden'); win.classList.add('hidden'); screen.classList.remove('hidden'); }
+
+function startGame(){
+  levels = getDailyLevels();
+  level=0; startTime=Date.now(); loadLevel(); show(game); rulesOverlay.classList.add('show');
+}
+
+function loadLevel(){
+  lives=2; hintsRemaining=2; revealed=[];
+  status.innerText = `Lives: ${lives} | Hints: ${hintsRemaining} | Level ${level+1}/3`;
+  prompts.innerHTML = `${levels[level].clues[0]}<br>+ ${levels[level].clues[1]}`;
+  inputsDiv.innerHTML='';
+  levels[level].answer.split('').forEach((l,i)=>{
+    const input=document.createElement('input');
+    input.maxLength=1;
+    input.addEventListener('input',()=>{ if(input.value.length>0 && i<inputsDiv.children.length-1) inputsDiv.children[i+1].focus(); });
+    inputsDiv.appendChild(input);
+  });
+}
+
+submitBtn.onclick=()=>{
+  const guess=[...inputsDiv.children].map(i=>i.value).join('').toUpperCase();
+  if(guess===levels[level].answer){
+    level++;
+    if(level===levels.length){
+      const time=Math.floor((Date.now()-startTime)/1000);
+      finalTime.innerText=`Completed in ${time} seconds`;
+      show(win);
+    } else loadLevel();
+  } else {
+    lives--; status.innerText=`Lives: ${lives} | Hints: ${hintsRemaining} | Level ${level+1}/3`;
+    if(lives===0){ alert('Out of lives!'); show(home); }
+  }
+};
+
+hintBtn.onclick=()=>{
+  if(hintsRemaining>0){
+    const answer=levels[level].answer;
+    let revealedThisHint=0;
+    while(revealedThisHint<2){
+      const idx=Math.floor(Math.random()*answer.length);
+      if(!revealed.includes(idx)){ revealed.push(idx); revealedThisHint++; }
+    }
+    [...inputsDiv.children].forEach((inp,i)=>{ if(revealed.includes(i)) inp.value=answer[i]; });
+    hintsRemaining--; status.innerText=`Lives: ${lives} | Hints: ${hintsRemaining} | Level ${level+1}/3`;
+  }
+};
+
+playBtn.onclick=startGame;
+closeRules.onclick=()=>rulesOverlay.classList.remove('show');
+howBtn.onclick=()=>rulesOverlay.classList.add('show');
+backHome.onclick=()=>show(home);
+</script>
+
+</body>
+</html>
